@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Green Discount - Categories</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* FILTER BUTTONS */
+    .filters {
+      padding: 12px 20px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .filters::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      background: #e5f7e5;
+      color: #2c7d37;
+      border: 1px solid #b6e2b7;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    /* =========================
+   BUTTON STYLES (CUSTOM)
+   ========================= */
+.add-to-cart {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.add-to-cart:hover {
+  background: linear-gradient(135deg, #43a047, #1b5e20);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+}
+.available-count {
+  color: #2c7d37;
+  font-size: 13px;
+  font-weight: 600;
+  background: #e5f7e5;
+  border-radius: 10px;
+  padding: 4px 10px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+
+.add-to-cart:active {
+  transform: scale(0.97);
+}
+
+    .filter-btn:hover {
+      background: #2c7d37;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .filter-btn.active {
+      background: #2c7d37;
+      color: #fff;
+    }
+
+    /* MAP */
+    #map-section {
+      margin: 0 20px 20px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* PRODUCTS */
+    .product-card {
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      text-align: center;
+      transition: transform 0.15s ease;
+    }
+    .product-card:hover {
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-header">
+  <a href="index.html"><img src="back.png" alt="Back" class="icon-small"></a>
+  <h1>Product List</h1>
+  <span style="width:22px;"></span>
+</header>
+
+<section id="map-section">
+  <div id="map" style="width:100%; height:250px;"></div>
+</section>
+
+<section class="filters">
+  <button class="filter-btn active">All</button>
+  <button class="filter-btn">Fruits</button>
+  <button class="filter-btn">Bakery</button>
+  <button class="filter-btn">Vegetables</button>
+  <button class="filter-btn">Drinks</button>
+</section>
+
+<section class="product-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;padding:0 20px 80px;">
+  <div class="product-card">
+    <img src="green_apple.jpg" alt="Apple" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Green Apple</p>
+    <p style="color:#2c7d37;">$3.50</p>
+    <button class="add-to-cart" onclick="addToCart('Green Apple', 3.50, 'green_apple.jpg')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="banana.jpg" alt="Banana" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Banana</p>
+    <p style="color:#2c7d37;">$2.50</p>
+    <button class="add-to-cart" onclick="addToCart('Banana', 2.50, 'banana.jpg')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="tomato.jpg" alt="Tomato" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Tomato</p>
+    <p style="color:#2c7d37;">$2.00</p>
+    <button class="add-to-cart" onclick="addToCart('Tomato', 2.00, 'tomato.jpg')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="bread1.webp" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Tomato</p>
+    <p style="color:#2c7d37;"  style="font-weight:600;margin-top:8px;">$2.50</p>
+    <button class="add-to-cart" onclick="addToCart('Fresh Bread', 2.50, 'bread1.webp')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="milk.jpg" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Milk</p>
+    <p  style="color:#2c7d37;" style="font-weight:600;margin-top:8px;">$4.50</p>
+    <button class="add-to-cart" onclick="addToCart('Milk', 4.50, 'milk.jpg')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="chocolate.jpg" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Chocolate Nescafe</p>
+    <p style="color:#2c7d37;" style="font-weight:600;margin-top:8px;">$5.50</p>
+    <button class="add-to-cart" onclick="addToCart('Chocolate Nescafe', 5.50, 'bread1.webp')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="bread1.webp" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Tomato</p>
+    <p style="color:#2c7d37;"  style="font-weight:600;margin-top:8px;">$2.50</p>
+    <button class="add-to-cart" onclick="addToCart('Fresh Bread', 2.50, 'bread1.webp')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="bread1.webp" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Tomato</p>
+    <p style="color:#2c7d37;"  style="font-weight:600;margin-top:8px;">$2.50</p>
+    <button class="add-to-cart" onclick="addToCart('Fresh Bread', 2.50, 'bread1.webp')">Add to Cart</button>
+  </div>
+  <div class="product-card">
+    <img src="bread1.webp" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">Tomato</p>
+    <p style="color:#2c7d37;" style="font-weight:600;margin-top:8px;">$2.50</p>
+    <button class="add-to-cart" onclick="addToCart('Fresh Bread', 2.50, 'bread1.webp')">Add to Cart</button>
+  </div>
+    <div class="product-card">
+    <img src="bread1.webp" alt="Bread" style="width:100%;border-radius:14px;">
+    <p style="font-weight:600;margin-top:8px;">$2.50</p>
+    <p class="available-count">Only <span class="count">3</span> left!</p>
+    <button class="add-to-cart" onclick="addToCart('Fresh Bread', 2.50, 'bread1.webp')">Add to Cart</button>
+  </div>
+
+
+</section>
+
+
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <img src="home.png" alt="Home" />
+    <span>Home</span>
+  </a>
+  <a href="category.html" class="nav-item active">
+    <img src="categories_icon.png" alt="Category" />
+    <span>Category</span>
+  </a>
+  <a href="ai-scan.html" class="nav-item">
+    <img src="ai.png" alt="AI Scan" />
+    <span>AI Scan</span>
+  </a>
+  <a href="cart.html" class="nav-item">
+    <img src="cart_icon.png" alt="Cart" />
+    <span>Cart</span>
+  </a>
+  <a href="profile.html" class="nav-item">
+    <img src="profile.png" alt="Profile" />
+    <span>Profile</span>
+  </a>
+</nav>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const storeName = params.get('store') || 'Store';
+  const lat = parseFloat(params.get('lat')) || 41.3111;
+  const lon = parseFloat(params.get('lon')) || 69.2797;
+
+  document.querySelector('.top-header h1').textContent = storeName;
+ 
+  // 🛒 Product data
+  const products = [
+    { name: "Green Apple", price: 3.50, img: "green_apple.jpg", stock: 5 },
+    { name: "Banana", price: 2.50, img: "banana.jpg", stock: 7 },
+    { name: "Tomato", price: 2.00, img: "tomato.jpg", stock: 10 },
+    { name: "Fresh Bread", price: 2.50, img: "bread1.webp", stock: 9 },
+    { name: "Milk", price: 4.50, img: "milk.jpg", stock: 11},
+    { name: "Chocolate Nescafe", price: 5.50, img: "chocolate.jpg", count: 22},
+  ];
+
+  ////////////////////
+  //const resetStock = true;
+  //if (resetStock) localStorage.removeItem("productStock");
+  ///////////////////
+
+
+  // Load saved stock (after checkout)
+  const savedStock = JSON.parse(localStorage.getItem("productStock")) || {};
+  products.forEach(p => {
+    if (savedStock[p.name] !== undefined) p.stock = savedStock[p.name];
+  });
+
+  // Save back if missing keys (to initialize)
+  localStorage.setItem("productStock", JSON.stringify(
+    products.reduce((acc, p) => { acc[p.name] = p.stock; return acc; }, {})
+  ));
+
+  // Render products dynamically
+  const grid = document.querySelector(".product-grid");
+  grid.innerHTML = products.map(p => `
+    <div class="product-card">
+      <img src="${p.img}" alt="${p.name}" style="width:100%;border-radius:14px;">
+      <p style="font-weight:600;margin-top:8px;">${p.name}</p>
+      <p style="color:#2c7d37;">$${p.price.toFixed(2)}</p>
+      <p class="available-count">
+        Only <span class="count" id="count-${p.name.replace(/\s+/g,'')}">${p.stock}</span> left!
+      </p>
+      <button id="btn-${p.name.replace(/\s+/g,'')}" 
+        class="add-to-cart"
+        onclick="addToCart('${p.name}', ${p.price}, '${p.img}')"
+        ${p.stock <= 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;background:#ccc;"' : ''}>
+        ${p.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+      </button>
+    </div>
+  `).join("");
+
+  // 🗺️ MAP
+  function initMap() {
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: { lat, lng: lon },
+      zoom: 14,
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#e5f7e5" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#2c7d37" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] }
+      ]
+    });
+
+    const markets = [
+      { name: "GreenMart Central", lat: lat + 0.002, lon: lon - 0.001 },
+      { name: "Eco Fresh Store", lat: lat - 0.002, lon: lon + 0.001 },
+      { name: "Organic Hub", lat: lat + 0.001, lon: lon + 0.002 }
+    ];
+
+    new google.maps.Marker({
+      position: { lat, lng: lon },
+      map,
+      title: storeName,
+      icon: {
+        url: "profile.png",
+        scaledSize: new google.maps.Size(40, 40)
+      }
+    });
+
+    markets.forEach(m => {
+      new google.maps.Marker({
+        position: { lat: m.lat, lng: m.lon },
+        map,
+        title: m.name,
+        icon: {
+          url: "store_icon.png",
+          scaledSize: new google.maps.Size(30, 30)
+        }
+      });
+    });
+  }
+
+  // 🛒 Add to Cart
+  function addToCart(name, price, img) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const existing = cart.find(item => item.name === name);
+
+    const stockData = JSON.parse(localStorage.getItem("productStock")) || {};
+    const available = stockData[name];
+
+    const totalQty = existing ? existing.qty + 1 : 1;
+    if (totalQty > available) {
+      alert(`Sorry, only ${available} ${name}s left in stock!`);
+      return;
+    }
+
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({ name, price, img, qty: 1 });
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert(`${name} added to cart!`);
+  }
+
+  // ✅ Refresh stock display when returning from checkout
+  window.addEventListener("focus", () => {
+    const stockData = JSON.parse(localStorage.getItem("productStock")) || {};
+    products.forEach(p => {
+      const countEl = document.getElementById(`count-${p.name.replace(/\s+/g,'')}`);
+      const btn = document.getElementById(`btn-${p.name.replace(/\s+/g,'')}`);
+      if (stockData[p.name] !== undefined) {
+        countEl.textContent = stockData[p.name];
+        if (stockData[p.name] <= 0) {
+          btn.textContent = "Out of Stock";
+          btn.disabled = true;
+          btn.style.opacity = "0.5";
+          btn.style.cursor = "not-allowed";
+        }
+      }
+    });
+  });
+</script>
+
+<script async src="https://maps.googleapis.com/maps/api/js?callback=initMap"></script>
+
+</body>
+</html>

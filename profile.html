@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - Green Discount</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ECO POINTS DASHBOARD */
+    .eco-dashboard {
+      background: #e5f7e5;
+      margin: 0 20px 20px;
+      border-radius: 18px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      color: #2c7d37;
+    }
+    .eco-dashboard h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .eco-points {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+    .eco-level {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2c7d37;
+      margin-bottom: 10px;
+    }
+    .progress-bar {
+      background: #d3ecd3;
+      border-radius: 10px;
+      height: 10px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-fill {
+      background: #2c7d37;
+      height: 10px;
+      border-radius: 10px;
+      width: 65%; /* Dynamic later */
+      transition: width 0.3s ease;
+    }
+
+    /* MENU LIST STYLE UPDATE */
+    .menu-list a {
+      display: flex;
+      align-items: center;
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      text-decoration: none;
+      color: #2c7d37;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: background 0.2s ease;
+    }
+    .menu-list a:hover {
+      background: #e5f7e5;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-header">
+  <a href="index.html"><img src="back.png" alt="Back" class="icon-small"></a>
+  <h1>Profile</h1>
+  <span style="width:22px;"></span>
+</header>
+
+<section style="text-align:center;padding:30px 20px 10px;">
+  <img src="me.jpg" alt="User" style="width:80px;height:80px;border-radius:50%;background:#e5f7e5;">
+  <h2 style="margin-top:12px;">Abdulloh</h2>
+  <p style="color:#555;">abdullohshavkatjonov@gmail.com</p>
+</section>
+
+<!-- 🌱 ECO POINTS DASHBOARD -->
+<section class="eco-dashboard">
+  <h2>Eco Points</h2>
+  <div class="eco-points" id="ecoPoints">1240</div>
+  <div class="eco-level">Level 3 — Green Guardian</div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <p style="font-size:13px;margin-top:8px;">260 points to reach Level 4 🌿</p>
+</section>
+
+<div class="menu-list" style="padding:0 20px;margin-bottom:80px;">
+  <a href="#"><div><h4>Purchase History</h4></div></a>
+  <a href="#"><div><h4>Notifications</h4></div></a>
+  <a href="#"><div><h4>Payment Methods</h4></div></a>
+  <a href="#" id="logout"><div><h4>Logout</h4></div></a>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <img src="home.png" alt="Home" />
+    <span>Home</span>
+  </a>
+  <a href="category.html" class="nav-item">
+    <img src="categories_icon.png" alt="Category" />
+    <span>Category</span>
+  </a>
+  <a href="ai-scan.html" class="nav-item">
+    <img src="ai.png" alt="AI Scan" />
+    <span>AI Scan</span>
+  </a>
+  <a href="cart.html" class="nav-item">
+    <img src="cart_icon.png" alt="Cart" />
+    <span>Cart</span>
+  </a>
+  <a href="profile.html" class="nav-item active">
+    <img src="profile.png" alt="Profile" />
+    <span>Profile</span>
+  </a>
+</nav>
+
+<script>
+  // 🪴 Load Eco Points from storage or default
+  let ecoPoints = parseFloat(localStorage.getItem('ecoPoints')) || 0;
+
+  document.getElementById('ecoPoints').textContent = ecoPoints.toFixed(0);
+
+  // Level calculation (simple example)
+  const level = Math.floor(ecoPoints / 500) + 1;
+  const nextLevelGoal = level * 500;
+  const progressPercent = (ecoPoints % 500) / 5;
+
+  document.getElementById('progressFill').style.width = progressPercent + '%';
+
+  // Dynamic level name
+  const levelNames = ["Seedling", "Sprout", "Green Guardian", "Eco Hero", "Planet Protector"];
+  const levelName = levelNames[level - 1] || "Eco Legend";
+
+  document.querySelector('.eco-level').textContent = `Level ${level} — ${levelName}`;
+  document.querySelector('.eco-dashboard p').textContent = `${(nextLevelGoal - ecoPoints).toFixed(0)} points to reach Level ${level + 1} 🌿`;
+</script>
+
+
+</body>
+</html>

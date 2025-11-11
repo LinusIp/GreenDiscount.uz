@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .cart-item {
+      display: flex;
+      align-items: center;
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .cart-item img {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      margin-right: 14px;
+    }
+    .cart-item button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.25s ease;
+      margin-left: auto;
+    }
+    .cart-item button:hover {
+      background: #d32f2f;
+      transform: translateY(-2px);
+    }
+    .checkout-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2e7d32, #66bb6a);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(46,125,50,0.3);
+      transition: all 0.25s ease;
+    }
+    .checkout-btn:hover {
+      background: linear-gradient(135deg, #1b5e20, #4caf50);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-header">
+  <a href="index.html"><img src="back.png" alt="Back" class="icon-small"></a>
+  <h1>Cart</h1>
+  <span style="width:22px;"></span>
+</header>
+
+<section id="cart-items" style="padding:20px;margin-bottom:140px;"></section>
+
+<div id="cart-footer" style="padding:20px;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:1px solid #eee;">
+  <p style="font-size:16px;">Total: <strong id="total-price">$0.00</strong></p>
+  <button class="checkout-btn" onclick="checkout()">Checkout</button>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <img src="home.png" alt="Home" />
+    <span>Home</span>
+  </a>
+  <a href="category.html" class="nav-item">
+    <img src="categories_icon.png" alt="Category" />
+    <span>Category</span>
+  </a>
+  <a href="ai-scan.html" class="nav-item">
+    <img src="ai.png" alt="AI Scan" />
+    <span>AI Scan</span>
+  </a>
+  <a href="cart.html" class="nav-item active">
+    <img src="cart_icon.png" alt="Cart" />
+    <span>Cart</span>
+  </a>
+  <a href="profile.html" class="nav-item">
+    <img src="profile.png" alt="Profile" />
+    <span>Profile</span>
+  </a>
+</nav>
+
+<script>
+  function loadCart() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartItemsDiv = document.getElementById('cart-items');
+    const totalPriceEl = document.getElementById('total-price');
+    
+    if (cart.length === 0) {
+      cartItemsDiv.innerHTML = `<p style="text-align:center;color:#777;">Your cart is empty.</p>`;
+      totalPriceEl.textContent = '$0.00';
+      return;
+    }
+
+    let total = 0;
+    cartItemsDiv.innerHTML = cart.map((item, index) => {
+      total += item.price * item.qty;
+      return `
+        <div class="cart-item">
+          <img src="${item.img}" alt="${item.name}">
+          <div>
+            <h4>${item.name}</h4>
+            <p>$${item.price.toFixed(2)} × ${item.qty}</p>
+          </div>
+          <button onclick="removeItem(${index})">Remove</button>
+        </div>
+      `;
+    }).join('');
+    
+    totalPriceEl.textContent = `$${total.toFixed(2)}`;
+  }
+
+  function removeItem(index) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCart();
+  }
+
+  function checkout() {
+  const cart = JSON.parse(localStorage.getItem('cart')) || [];
+  if (cart.length === 0) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  // Calculate total
+  let total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  // 🪴 ECO POINTS SYSTEM
+  let ecoPoints = parseFloat(localStorage.getItem('ecoPoints')) || 0;
+  const earnedPoints = Math.floor(total * 10); // $1 = 10 eco points
+  ecoPoints += earnedPoints;
+  localStorage.setItem('ecoPoints', ecoPoints);
+
+  // 🧾 Reduce stock after purchase
+  const stockData = JSON.parse(localStorage.getItem('productStock')) || {};
+  cart.forEach(item => {
+    if (stockData[item.name] !== undefined) {
+      stockData[item.name] = Math.max(0, stockData[item.name] - item.qty);
+    }
+  });
+  localStorage.setItem('productStock', JSON.stringify(stockData));
+
+  // ✅ Clear cart after purchase
+  alert(`Thank you for your purchase!\nYou earned ${earnedPoints} Eco Points 🌿`);
+  localStorage.removeItem('cart');
+  loadCart();
+}
+
+  document.addEventListener('DOMContentLoaded', loadCart);
+  
+</script>
+
+</body>
+</html>

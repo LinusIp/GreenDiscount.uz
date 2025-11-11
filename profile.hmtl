@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-btn">←</a>
+    <h1>Profile</h1>
+  </header>
+
+  <div class="profile-section">
+    <img src="#" alt="User Icon" class="avatar">
+    <h2>Abdulioh</h2>
+    <p>abdulioh@mail.com</p>
+  </div>
+
+  <div class="menu-list">
+    <a href="#">Purchase History</a>
+    <a href="#">Notifications</a>
+    <a href="#">Payment Methods</a>
+    <a href="#">Logout</a>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="index.html">Home</a>
+    <a href="product-list.html">Category</a>
+    <a href="ai-scan.html">AI Scan</a>
+    <a href="cart.html">Cart</a>
+    <a href="profile.html" class="active">Profile</a>
+  </nav>
+</body>
+</html>

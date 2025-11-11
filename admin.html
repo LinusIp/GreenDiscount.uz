@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Green Discount — Admin Panel</title>
+
+<!-- Leaflet (for picking store location) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+  :root{
+    --green:#2c7d37;
+    --mint:#e5f7e5;
+    --muted:#777;
+    --card:#fafafa;
+    --accent:#b6e2b7;
+    --maxw:1100px;
+  }
+  *{box-sizing:border-box;font-family:Inter, system-ui, Arial, sans-serif}
+  body{background:#fff;color:#222;padding:18px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:var(--maxw)}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  header h1{margin:0;color:var(--green);font-size:20px}
+  .top-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn{background:var(--green);color:#fff;padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+  .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--accent)}
+  nav.tabs{display:flex;gap:8px;margin-bottom:12px}
+  nav.tabs button{background:transparent;border:1px solid #eee;padding:8px 12px;border-radius:10px;cursor:pointer}
+  nav.tabs button.active{background:var(--mint);border-color:var(--accent);color:var(--green);font-weight:700}
+
+  .card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:14px}
+  .full{grid-column:1/-1}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="text"], input[type="number"], select, textarea{
+    width:100%;padding:8px;border-radius:8px;border:1px solid #eee;margin-bottom:10px;
+  }
+  .row{display:flex;gap:8px}
+  .small{width:60px}
+  .list{max-height:420px;overflow:auto;padding-right:6px}
+  .item{display:flex;gap:10px;padding:8px;border-radius:10px;align-items:center;border:1px solid #f0f0f0;margin-bottom:8px}
+  .thumb{width:56px;height:56px;border-radius:8px;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;overflow:hidden}
+  .item h4{margin:0;font-size:15px}
+  .meta{font-size:13px;color:var(--muted)}
+  .muted{color:var(--muted);font-size:13px}
+  .actions{margin-left:auto;display:flex;gap:6px}
+  .chip{background:var(--mint);padding:6px 8px;border-radius:999px;color:var(--green);font-weight:700;font-size:13px}
+
+  /* Map */
+  #pickerMap{width:100%;height:220px;border-radius:8px;border:1px solid #eee}
+
+  /* Responsive */
+  @media (max-width:900px){ .layout{grid-template-columns:1fr} .top-actions{flex-direction:column;align-items:flex-end} .full{margin-top:8px} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="logo.jpg" alt="logo" style="width:44px;height:44px;border-radius:10px;background:var(--mint)" />
+      <h1>Green Discount — Admin</h1>
+      <div class="top-actions">
+        <button id="exportBtn" class="btn ghost">Export JSON</button>
+        <input id="importFile" type="file" accept=".json" style="display:none" />
+        <button id="importBtn" class="btn ghost">Import JSON</button>
+        <button id="resetBtn" class="btn ghost">Reset Data</button>
+        <button id="sampleBtn" class="btn">Seed Sample</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="stores">Stores</button>
+      <button class="tab-btn" data-tab="products">Products</button>
+      <button class="tab-btn" data-tab="discounts">Discounts</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </nav>
+
+    <div class="layout">
+      <!-- LEFT: MAIN AREA -->
+      <div id="mainArea">
+
+        <!-- STORES -->
+        <section id="stores" class="card tab-panel">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <h3 style="margin:0">Stores</h3>
+            <div class="muted">Manage physical stores and their locations</div>
+          </div>
+
+          <div class="row" style="margin-bottom:12px">
+            <div style="flex:1">
+              <label>Store name</label>
+              <input id="storeName" type="text" placeholder="GreenMart Central" />
+            </div>
+            <div style="width:110px">
+              <label>Items (count)</label>
+              <input id="storeItems" type="number" min="0" value="0" />
+            </div>
+          </div>
+
+          <div class="row" style="gap:10px;margin-bottom:10px">
+            <div style="flex:1">
+              <label>Address (optional)</label>
+              <input id="storeAddress" type="text" placeholder="123 Main St, City" />
+            </div>
+            <div style="width:140px">
+              <label>Image</label>
+              <input id="storeImage" type="file" accept="image/*" />
+            </div>
+          </div>
+
+          <label>Pick location (click on map)</label>
+          <div id="pickerMap"></div>
+
+          <div class="row" style="margin-top:10px">
+            <div style="flex:1">
+              <label>Latitude</label>
+              <input id="storeLat" type="text" placeholder="41.3111" />
+            </div>
+            <div style="flex:1">
+              <label>Longitude</label>
+              <input id="storeLon" type="text" placeholder="69.2797" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="addStoreBtn" class="btn">Add Store</button>
+            <button id="updateStoreBtn" class="btn ghost" style="display:none">Update</button>
+            <button id="clearStoreBtn" class="btn ghost">Clear</button>
+          </div>
+
+          <hr style="margin:12px 0" />
+
+          <div>
+            <h4 style="margin:0 0 8px 0">All stores</h4>
+            <div id="storesList" class="list"></div>
+          </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section id="products" class="card tab-panel" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <h3 style="margin:0">Products</h3>
+            <div class="muted">Add items and link them to stores</div>
+          </div>
+
+          <div class="row" style="gap:8px">
+            <div style="flex:1">
+              <label>Product name</label>
+              <input id="productName" type="text" placeholder="Fresh Bread" />
+            </div>
+            <div style="width:120px">
+              <label>Price</label>
+              <input id="productPrice" type="number" min="0" step="0.01" placeholder="2.50" />
+            </div>
+            <div style="width:120px">
+              <label>Discount %</label>
+              <input id="productDiscount" type="number" min="0" max="100" value="0" />
+            </div>
+          </div>
+
+          <div class="row" style="gap:8px;margin-top:8px">
+            <div style="flex:1">
+              <label>Category</label>
+              <select id="productCategory">
+                <option>Fruits</option>
+                <option>Bakery</option>
+                <option>Vegetables</option>
+                <option>Drinks</option>
+              </select>
+            </div>
+            <div style="width:200px">
+              <label>Store (optional)</label>
+              <select id="productStore">
+                <option value="">— none —</option>
+              </select>
+            </div>
+            <div style="width:160px">
+              <label>Image</label>
+              <input id="productImage" type="file" accept="image/*" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="addProductBtn" class="btn">Add Product</button>
+            <button id="updateProductBtn" class="btn ghost" style="display:none">Update</button>
+            <button id="clearProductBtn" class="btn ghost">Clear</button>
+          </div>
+
+          <hr style="margin:12px 0" />
+
+          <div>
+            <h4 style="margin:0 0 8px 0">All products</h4>
+            <div id="productsList" class="list"></div>
+          </div>
+        </section>
+
+        <!-- DISCOUNTS -->
+        <section id="discounts" class="card tab-panel" style="display:none">
+          <h3 style="margin-top:0">Discounts</h3>
+          <div class="muted">Quick controls to enable/disable discounts and apply promos</div>
+
+          <div style="margin-top:12px">
+            <label>Global quick discount (%)</label>
+            <div class="row">
+              <input id="globalDiscount" type="number" min="0" max="100" value="0" />
+              <button id="applyGlobalDiscount" class="btn">Apply to all products</button>
+              <button id="clearGlobalDiscount" class="btn ghost">Clear</button>
+            </div>
+          </div>
+
+          <hr style="margin:12px 0" />
+
+          <div>
+            <h4 style="margin:0 0 8px 0">Products with discounts</h4>
+            <div id="discountedList" class="list"></div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="settings" class="card tab-panel" style="display:none">
+          <h3 style="margin-top:0">Settings & Info</h3>
+          <p class="muted">This admin is frontend-only and uses <code>localStorage</code>. Export data before clearing or moving machines.</p>
+          <p><strong>localStorage keys:</strong> <code>gd_stores</code>, <code>gd_products</code></p>
+          <p class="muted">You can later connect these endpoints to an API to power the live app.</p>
+        </section>
+      </div>
+
+      <!-- RIGHT: SIDEBAR -->
+      <aside>
+        <div class="card">
+          <h4 style="margin-top:0">Quick stats</h4>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+            <div class="chip" id="statStores">0 stores</div>
+            <div class="chip" id="statProducts">0 products</div>
+            <div class="chip" id="statDiscounts">0 discounts</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-top:0">Import / Export</h4>
+          <p class="muted">Backup or transfer database</p>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="exportBtn2" class="btn ghost">Export JSON</button>
+            <button id="importBtn2" class="btn ghost">Import JSON</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-top:0">Shortcuts</h4>
+          <button id="openHome" class="btn ghost" style="width:100%">Open Home Page</button>
+          <button id="openCategory" class="btn ghost" style="width:100%;margin-top:8px">Open Category Page</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+/* === Admin Frontend Logic - uses localStorage ===
+   Keys:
+     gd_stores  -> array of stores
+     gd_products -> array of products
+*/
+
+const LS_STORES = 'gd_stores';
+const LS_PRODUCTS = 'gd_products';
+
+function uid(prefix='id'){
+  return prefix + '_' + Math.random().toString(36).slice(2,9);
+}
+
+/* --- Utilities for storage --- */
+function readStores(){ return JSON.parse(localStorage.getItem(LS_STORES) || '[]'); }
+function writeStores(s){ localStorage.setItem(LS_STORES, JSON.stringify(s)); }
+function readProducts(){ return JSON.parse(localStorage.getItem(LS_PRODUCTS) || '[]'); }
+function writeProducts(p){ localStorage.setItem(LS_PRODUCTS, JSON.stringify(p)); }
+
+/* --- DOM refs --- */
+const tabs = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.tab-panel');
+const storesList = document.getElementById('storesList');
+const productsList = document.getElementById('productsList');
+const discountedList = document.getElementById('discountedList');
+const statStores = document.getElementById('statStores');
+const statProducts = document.getElementById('statProducts');
+const statDiscounts = document.getElementById('statDiscounts');
+
+const storeNameIn = document.getElementById('storeName');
+const storeItemsIn = document.getElementById('storeItems');
+const storeAddressIn = document.getElementById('storeAddress');
+const storeImageIn = document.getElementById('storeImage');
+const storeLatIn = document.getElementById('storeLat');
+const storeLonIn = document.getElementById('storeLon');
+const addStoreBtn = document.getElementById('addStoreBtn');
+const updateStoreBtn = document.getElementById('updateStoreBtn');
+const clearStoreBtn = document.getElementById('clearStoreBtn');
+
+const productNameIn = document.getElementById('productName');
+const productPriceIn = document.getElementById('productPrice');
+const productDiscountIn = document.getElementById('productDiscount');
+const productCategoryIn = document.getElementById('productCategory');
+const productStoreIn = document.getElementById('productStore');
+const productImageIn = document.getElementById('productImage');
+const addProductBtn = document.getElementById('addProductBtn');
+const updateProductBtn = document.getElementById('updateProductBtn');
+const clearProductBtn = document.getElementById('clearProductBtn');
+const globalDiscountIn = document.getElementById('globalDiscount');
+const applyGlobalDiscountBtn = document.getElementById('applyGlobalDiscount');
+const clearGlobalDiscountBtn = document.getElementById('clearGlobalDiscount');
+
+const exportBtn = document.getElementById('exportBtn');
+const exportBtn2 = document.getElementById('exportBtn2');
+const importBtn = document.getElementById('importBtn');
+const importBtn2 = document.getElementById('importBtn2');
+const importFile = document.getElementById('importFile');
+const sampleBtn = document.getElementById('sampleBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+const openHome = document.getElementById('openHome');
+const openCategory = document.getElementById('openCategory');
+
+/* --- State for editing --- */
+let editStoreId = null;
+let editProductId = null;
+
+/* --- Initialize map picker (Leaflet) --- */
+let pickerMap, pickerMarker;
+function initPickerMap(){
+  pickerMap = L.map('pickerMap', {zoomControl:false}).setView([41.3111,69.2797], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(pickerMap);
+
+  pickerMap.on('click', e => {
+    const {lat,lng} = e.latlng;
+    setPickerMarker(lat,lng);
+  });
+}
+
+function setPickerMarker(lat,lng){
+  storeLatIn.value = lat.toFixed(6);
+  storeLonIn.value = lng.toFixed(6);
+  if(pickerMarker) pickerMarker.setLatLng([lat,lng]);
+  else pickerMarker = L.marker([lat,lng]).addTo(pickerMap);
+  pickerMap.setView([lat,lng], 15);
+}
+
+/* --- Render helpers --- */
+function renderStats(){
+  const stores = readStores();
+  const prods = readProducts();
+  const discounts = prods.filter(p => p.discount && p.discount>0).length;
+  statStores.textContent = `${stores.length} stores`;
+  statProducts.textContent = `${prods.length} products`;
+  statDiscounts.textContent = `${discounts} discounts`;
+}
+
+function renderStoreOptions(){
+  const stores = readStores();
+  productStoreIn.innerHTML = '<option value="">— none —</option>';
+  stores.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    productStoreIn.appendChild(opt);
+  });
+}
+
+/* store / product item templates */
+function createStoreNode(s){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'item';
+  wrapper.innerHTML = `
+    <div class="thumb">${ s.image ? `<img src="${s.image}" style="width:100%;height:100%;object-fit:cover" />` : 'Store' }</div>
+    <div style="min-width:0">
+      <h4>${s.name}</h4>
+      <div class="meta">${s.items} items • ${s.address || 'No address'}</div>
+      <div class="meta">Lat: ${s.lat}, Lon: ${s.lon}</div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost edit">Edit</button>
+      <button class="btn ghost del">Delete</button>
+    </div>
+  `;
+  wrapper.querySelector('.edit').addEventListener('click', () => editStore(s.id));
+  wrapper.querySelector('.del').addEventListener('click', () => {
+    if(confirm('Delete store and unlink products?')) deleteStore(s.id);
+  });
+  return wrapper;
+}
+
+function createProductNode(p){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'item';
+  const store = readStores().find(s=>s.id===p.store) || null;
+  const priceBefore = (p.price || 0).toFixed(2);
+  const discounted = p.discount && p.discount>0;
+  const priceAfter = discounted ? ( (p.price*(1 - p.discount/100)).toFixed(2) ) : priceBefore;
+
+  wrapper.innerHTML = `
+    <div class="thumb">${ p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover" />` : 'Product' }</div>
+    <div style="min-width:0">
+      <h4>${p.name}</h4>
+      <div class="meta">${p.category} • ${store ? store.name : '— no store —'}</div>
+      <div class="meta">${ discounted ? `<span style="text-decoration:line-through;color:#999">$${priceBefore}</span> <strong>$${priceAfter}</strong> (${p.discount}%)` : `<strong>$${priceBefore}</strong>` }</div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost edit">Edit</button>
+      <button class="btn ghost del">Delete</button>
+    </div>
+  `;
+  wrapper.querySelector('.edit').addEventListener('click', () => editProduct(p.id));
+  wrapper.querySelector('.del').addEventListener('click', () => {
+    if(confirm('Delete product?')) deleteProduct(p.id);
+  });
+  return wrapper;
+}
+
+/* --- CRUD: Stores --- */
+function addStore(){
+  const name = storeNameIn.value.trim();
+  if(!name){ alert('Store name required'); return; }
+  const lat = parseFloat(storeLatIn.value) || null;
+  const lon = parseFloat(storeLonIn.value) || null;
+  const items = parseInt(storeItemsIn.value) || 0;
+  const address = storeAddressIn.value.trim();
+  // image file -> base64
+  const file = storeImageIn.files[0];
+
+  const id = uid('store');
+  if(file){
+    readFileAsDataURL(file).then(dataUrl=>{
+      saveStore({id,name,items,address,lat,lon,image:dataUrl});
+    });
+  } else {
+    saveStore({id,name,items,address,lat,lon,image:null});
+  }
+}
+
+function saveStore(storeObj){
+  const stores = readStores();
+  stores.push(storeObj);
+  writeStores(stores);
+  renderStores();
+  renderStoreOptions();
+  clearStoreForm();
+}
+
+function renderStores(){
+  const stores = readStores();
+  storesList.innerHTML = '';
+  if(stores.length===0) storesList.innerHTML = '<div class="muted">No stores yet</div>';
+  stores.forEach(s => storesList.appendChild(createStoreNode(s)));
+  renderStats();
+}
+
+function editStore(id){
+  const stores = readStores();
+  const s = stores.find(x=>x.id===id);
+  if(!s) return alert('Store not found');
+  editStoreId = id;
+  storeNameIn.value = s.name;
+  storeItemsIn.value = s.items || 0;
+  storeAddressIn.value = s.address || '';
+  storeLatIn.value = s.lat || '';
+  storeLonIn.value = s.lon || '';
+  updateStoreBtn.style.display = 'inline-block';
+  addStoreBtn.style.display = 'none';
+  // show marker
+  if(s.lat && s.lon) setPickerMarker(parseFloat(s.lat), parseFloat(s.lon));
+}
+
+function updateStore(){
+  if(!editStoreId) return;
+  const stores = readStores();
+  const i = stores.findIndex(s=>s.id===editStoreId);
+  if(i===-1) return;
+  stores[i].name = storeNameIn.value.trim() || stores[i].name;
+  stores[i].items = parseInt(storeItemsIn.value)||0;
+  stores[i].address = storeAddressIn.value.trim();
+  stores[i].lat = parseFloat(storeLatIn.value) || null;
+  stores[i].lon = parseFloat(storeLonIn.value) || null;
+
+  const file = storeImageIn.files[0];
+  if(file){
+    readFileAsDataURL(file).then(dataUrl=>{
+      stores[i].image = dataUrl;
+      writeStores(stores);
+      finalizeStoreUpdate();
+    });
+  } else {
+    writeStores(stores);
+    finalizeStoreUpdate();
+  }
+}
+
+function finalizeStoreUpdate(){
+  editStoreId = null;
+  renderStores();
+  renderStoreOptions();
+  clearStoreForm();
+  updateStoreBtn.style.display = 'none';
+  addStoreBtn.style.display = 'inline-block';
+}
+
+function deleteStore(id){
+  let stores = readStores();
+  stores = stores.filter(s=>s.id!==id);
+  writeStores(stores);
+  // unlink products assigned to this store
+  let prods = readProducts();
+  prods = prods.map(p => p.store===id ? {...p, store: ''} : p);
+  writeProducts(prods);
+  renderStores();
+  renderProducts();
+  renderStoreOptions();
+}
+
+/* --- CRUD: Products --- */
+function addProduct(){
+  const name = productNameIn.value.trim();
+  if(!name){ alert('Product name required'); return; }
+  const price = parseFloat(productPriceIn.value) || 0;
+  const discount = parseInt(productDiscountIn.value) || 0;
+  const category = productCategoryIn.value;
+  const store = productStoreIn.value || '';
+  const file = productImageIn.files[0];
+  const id = uid('prod');
+
+  if(file){
+    readFileAsDataURL(file).then(dataUrl=>{
+      saveProduct({id,name,price,discount,category,store,image:dataUrl});
+    });
+  } else {
+    saveProduct({id,name,price,discount,category,store,image:null});
+  }
+}
+
+function saveProduct(p){
+  const prods = readProducts();
+  prods.push(p);
+  writeProducts(prods);
+  renderProducts();
+  renderDiscounted();
+  renderStats();
+  clearProductForm();
+}
+
+function renderProducts(){
+  const prods = readProducts();
+  productsList.innerHTML = '';
+  if(prods.length===0) productsList.innerHTML = '<div class="muted">No products yet</div>';
+  prods.forEach(p => productsList.appendChild(createProductNode(p)));
+}
+
+function editProduct(id){
+  const prods = readProducts();
+  const p = prods.find(x=>x.id===id);
+  if(!p) return alert('Product not found');
+  editProductId = id;
+  productNameIn.value = p.name;
+  productPriceIn.value = p.price;
+  productDiscountIn.value = p.discount || 0;
+  productCategoryIn.value = p.category || 'Fruits';
+  productStoreIn.value = p.store || '';
+  addProductBtn.style.display = 'none';
+  updateProductBtn.style.display = 'inline-block';
+}
+
+function updateProduct(){
+  if(!editProductId) return;
+  const prods = readProducts();
+  const i = prods.findIndex(x=>x.id===editProductId);
+  if(i===-1) return;
+  prods[i].name = productNameIn.value.trim() || prods[i].name;
+  prods[i].price = parseFloat(productPriceIn.value)||0;
+  prods[i].discount = parseInt(productDiscountIn.value)||0;
+  prods[i].category = productCategoryIn.value;
+  prods[i].store = productStoreIn.value || '';
+
+  const file = productImageIn.files[0];
+  if(file){
+    readFileAsDataURL(file).then(dataUrl=>{
+      prods[i].image = dataUrl;
+      writeProducts(prods);
+      finalizeProductUpdate();
+    });
+  } else {
+    writeProducts(prods);
+    finalizeProductUpdate();
+  }
+}
+
+function finalizeProductUpdate(){
+  editProductId = null;
+  renderProducts();
+  renderDiscounted();
+  renderStats();
+  clearProductForm();
+  updateProductBtn.style.display = 'none';
+  addProductBtn.style.display = 'inline-block';
+}
+
+function deleteProduct(id){
+  const prods = readProducts().filter(p=>p.id!==id);
+  writeProducts(prods);
+  renderProducts();
+  renderDiscounted();
+  renderStats();
+}
+
+/* --- Discounts views --- */
+function renderDiscounted(){
+  const prods = readProducts().filter(p=>p.discount && p.discount>0);
+  discountedList.innerHTML = '';
+  if(prods.length===0) discountedList.innerHTML = '<div class="muted">No discounted products</div>';
+  prods.forEach(p=>{
+    const node = createProductNode(p);
+    discountedList.appendChild(node);
+  });
+}
+
+/* --- Helpers --- */
+function readFileAsDataURL(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = ()=>res(fr.result);
+    fr.onerror = ()=>rej();
+    fr.readAsDataURL(file);
+  });
+}
+
+function clearStoreForm(){
+  storeNameIn.value=''; storeItemsIn.value=0; storeAddressIn.value=''; storeImageIn.value='';
+  storeLatIn.value=''; storeLonIn.value='';
+  if(pickerMarker){ pickerMap.removeLayer(pickerMarker); pickerMarker=null; }
+  updateStoreBtn.style.display='none'; addStoreBtn.style.display='inline-block';
+}
+
+function clearProductForm(){
+  productNameIn.value=''; productPriceIn.value=''; productDiscountIn.value=0;
+  productCategoryIn.value='Fruits'; productStoreIn.value=''; productImageIn.value='';
+  updateProductBtn.style.display='none'; addProductBtn.style.display='inline-block';
+}
+
+/* --- Export / Import --- */
+function exportJSON(){
+  const data = { stores: readStores(), products: readProducts(), exportedAt: new Date().toISOString() };
+  const str = JSON.stringify(data, null, 2);
+  const blob = new Blob([str], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'green-discount-data.json'; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+}
+
+function importJSONFile(file){
+  const fr = new FileReader();
+  fr.onload = e=>{
+    try{
+      const payload = JSON.parse(e.target.result);
+      if(Array.isArray(payload.stores) && Array.isArray(payload.products)){
+        writeStores(payload.stores);
+        writeProducts(payload.products);
+        renderAll();
+        alert('Import successful');
+      } else alert('Invalid file format (expected objects: stores, products)');
+    }catch(err){
+      alert('Failed to parse JSON: ' + err.message);
+    }
+  };
+  fr.readAsText(file);
+}
+
+/* --- Sample data & reset --- */
+function seedSample(){
+  const stores = [
+    { id:'store_a', name:'GreenMart Central', items:12, address:'Amir Temur Sq', lat:41.31116, lon:69.27974, image:null },
+    { id:'store_b', name:'Eco Fresh', items:8, address:'Shaykhontohur', lat:41.318, lon:69.260, image:null }
+  ];
+  const products = [
+    { id:'p1', name:'Fresh Bread', price:2.5, discount:20, category:'Bakery', store:'store_a', image:null },
+    { id:'p2', name:'Red Apple', price:3.5, discount:50, category:'Fruits', store:'store_a', image:null },
+    { id:'p3', name:'Tomato', price:2.0, discount:0, category:'Vegetables', store:'store_b', image:null }
+  ];
+  writeStores(stores); writeProducts(products);
+  renderAll();
+}
+
+function resetAll(confirmFirst=true){
+  if(confirmFirst && !confirm('This will delete all local admin data. Continue?')) return;
+  localStorage.removeItem(LS_STORES); localStorage.removeItem(LS_PRODUCTS);
+  renderAll();
+}
+
+/* --- render all --- */
+function renderAll(){
+  renderStores();
+  renderProducts();
+  renderDiscounted();
+  renderStats();
+  renderStoreOptions();
+}
+
+/* --- event wiring --- */
+addStoreBtn.addEventListener('click', addStore);
+updateStoreBtn.addEventListener('click', updateStore);
+clearStoreBtn.addEventListener('click', clearStoreForm);
+
+addProductBtn.addEventListener('click', addProduct);
+updateProductBtn.addEventListener('click', updateProduct);
+clearProductBtn.addEventListener('click', clearProductForm);
+
+applyGlobalDiscountBtn.addEventListener('click', ()=>{
+  const v = parseInt(globalDiscountIn.value)||0;
+  if(!confirm(`Apply ${v}% discount to ALL products?`)) return;
+  const prods = readProducts().map(p => ({...p, discount: v}));
+  writeProducts(prods); renderProducts(); renderDiscounted(); renderStats();
+});
+clearGlobalDiscountBtn.addEventListener('click', ()=>{
+  if(!confirm('Clear all discounts?')) return;
+  const prods = readProducts().map(p => ({...p, discount: 0}));
+  writeProducts(prods); renderProducts(); renderDiscounted(); renderStats();
+});
+
+exportBtn.addEventListener('click', exportJSON);
+exportBtn2.addEventListener('click', exportJSON);
+importBtn.addEventListener('click', ()=> importFile.click());
+importBtn2.addEventListener('click', ()=> importFile.click());
+importFile.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(f) importJSONFile(f);
+  importFile.value = '';
+});
+
+sampleBtn.addEventListener('click', ()=> seedSample());
+resetBtn.addEventListener('click', ()=> resetAll(true));
+
+openHome.addEventListener('click', ()=> window.open('index.html','_blank'));
+openCategory.addEventListener('click', ()=> window.open('category.html','_blank'));
+
+/* Tab switching */
+tabs.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabs.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    panels.forEach(p=>p.style.display = (p.id === btn.dataset.tab) ? 'block' : 'none');
+  });
+});
+
+/* initial setup */
+initPickerMap();
+renderAll();
+
+</script>
+</body>
+</html>
